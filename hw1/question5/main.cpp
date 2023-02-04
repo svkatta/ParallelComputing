@@ -2,22 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// void blockmatmul( int * first , int* second , int * result , int n , int blocksize){
-//     for(int a = 0 ; a < n/blocksize; a++){
-//         for (int b=0 ; b <  n/blocksize; b++){
-//             for (int c=0 ; c <  n/blocksize; c++){
-//                 for (int i = 0; i < blocksize; ++i) {
-//                     for (int j = 0; j < blocksize; ++j) {
-//                         for (int k = 0; k < blocksize; ++k) {
-//                                 // result[ i* n + j] += first[ i * n + k] * second[ k*n + j];
-//                                 result[ a*n + c*bs + i*n+j ] += first[ a*n + b*bs  + i * n + k ] * second[ originbc + k*n+j];
-//                             }
-//                     }
-//                 }
-//             }
-//         }
-//     }
-// }
 
 int blockmatmul( int * first , int* second , int * result , int n , int blocksize){
     struct timeval start, end;
