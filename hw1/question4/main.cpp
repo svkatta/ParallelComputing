@@ -7,9 +7,6 @@ int routine(int n, int * a, int * b, int * result){
     struct timeval start, end;
     
     gettimeofday(&start, NULL);
-    for (i = 0; i < n ; i ++){
-        result [ i ] = 0;
-    }
     for ( i = 0; i < n ; i ++){
         for ( j = 0; j < n ; j ++){
             result [ i ] += a [ i *n + j ]* b [ j ];
@@ -44,6 +41,15 @@ int main(int argc, char *argv[]) {
     int * a      = (int*)malloc(inp*inp * sizeof(int));
     int * b      = (int*)malloc(inp * sizeof(int)); 
     int * result = (int*)malloc(inp * sizeof(int));
+
+    int i,j;
+    for ( i = 0; i < inp*inp; i += 5) {
+        a[i] = 1;
+    }
+    for ( i = 0; i < inp; i += 5) {
+        b[i] = rand();
+        result[i]= rand();
+    }
 
     int timetaken ;
     if(rrev == 0){

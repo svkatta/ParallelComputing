@@ -1,6 +1,6 @@
 #!/bin/sh
 g++ *.cpp -o ./a.out
-for ((i=1;i<=256;i++)); 
+for ((i=1;i<=80;i++)); 
 do
     ./a.out $i
 done
