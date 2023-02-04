@@ -2,23 +2,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static int a[100000000]; 
-
 int routine(int skip,int * a);
 
 int main(int argc, char *argv[]) {
-    
+    int * ptr; // memory pointer
+
     int inp = atoi(argv[1]);
     // printf("input argument %d \n",inp);
-
+    
+    ptr=  (int*)malloc(inp * sizeof(int));
     int i;
-    for ( i = 0; i < 100000000; i += 5) {
-        a[i] = rand();
+    for ( i = 0; i < inp; i += 5) {
+        ptr[i] = rand();
     }
 
     int timetaken ;
-    timetaken = routine(inp , a);
-    printf("time taken %d \n",timetaken);
+    timetaken = routine(inp , ptr);
+    printf("%d \n",timetaken);
     return 0;
 }
 

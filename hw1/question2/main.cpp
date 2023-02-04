@@ -2,28 +2,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static int a[100000000]; 
-
 int routine(int skip,int * a);
 
 int main(int argc, char *argv[]) {
-    
-    int inp = atoi(argv[1]);
+    int * ptr;
+    int inp = atoi(argv[1]); // skip len
     // printf("input argument %d \n",inp);
 
+    ptr=  (int*)malloc(inp * 1000000* sizeof(int));
+
     int i;
-    for ( i = 0; i < 100000000; i += 5) {
-        a[i] = rand();
-    }
+    // for ( i = 0; i < 100000000; i += 5) {
+    //     a[i] = rand();
+    // }
 
     int timetaken ;
-    timetaken = routine(inp , a);
+    timetaken = routine(inp , ptr);
     printf("time taken %d \n",timetaken);
     return 0;
 }
 
 int routine(int skip , int * a){
-    int length=1000000;
+    int length=100000;
     int i ,sum ;
     struct timeval start, end;
     
