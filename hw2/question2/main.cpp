@@ -145,7 +145,7 @@ int Dilation(Graph G1,Graph G2){
             dilation = max(dilation,DistBFS(G2,i,node));
         }
     }
-    return dilation
+    return dilation;
 }
 
 

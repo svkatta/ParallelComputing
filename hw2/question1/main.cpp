@@ -145,7 +145,7 @@ int Dilation(Graph G1,Graph G2){
             dilation = max(dilation,DistBFS(G2,i,node));
         }
     }
-    return dilation
+    return dilation;
 }
 
 
@@ -167,7 +167,7 @@ int main(int argc, char *argv[]) {
         diameter = getSimulatedDiameter(100000,graph);
     }else if(network ==2){ 
         graph = getTree(size,k);
-        diameter = getSimulatedDiameter(5,graph);
+        diameter = getSimulatedDiameter(100000,graph);
     }
     
     // printf("No of nodes in G %4d and it's diameter is %d \n",graph.V,diameter);

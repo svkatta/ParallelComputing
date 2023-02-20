@@ -137,7 +137,7 @@ int Dilation(Graph G1,Graph G2){
             dilation = max(dilation,DistBFS(G2,i,node));
         }
     }
-    return dilation
+    return dilation;
 }
 
 int main(int argc, char *argv[]) {
@@ -151,7 +151,7 @@ int main(int argc, char *argv[]) {
     int dilation = Dilation(gring,gmesh);
     
     // printf("No of nodes in G %4d and it's bisection width is %d \n",graph.V,bisectionWidth);
-    printf(" %4d , %d \n",graph.V,dilation);
+    printf(" %4d , %d \n",gring.V,dilation);
 
     return 0;
 }
