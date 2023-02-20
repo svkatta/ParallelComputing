@@ -27,17 +27,54 @@ int getindex(int i , int  j ,int size){
     return (i%size)*size + j %size;
 }
 
-Graph getMesh(int size){
+Graph getMesh(int size,int k){
     Graph Gmesh = Graph(size*size);
     for(int i=0 ; i < size ; i++){
-        for(int j=0 ; j < size ; j++){ 
+        for(int j=0 ; j < size-1 ; j++){ 
             Gmesh.adj[getindex(i,j,size)].push_back(getindex(i,j+1,size)); // i,j -> i,j+1 
             Gmesh.adj[getindex(i,j+1,size)].push_back(getindex(i,j,size));
+        }
+    }
+    for(int i=0 ; i < size-1 ; i++){
+        for(int j=0 ; j < size ; j++){ 
             Gmesh.adj[getindex(i,j,size)].push_back(getindex(i+1,j,size)); // i,j -> i+1,j 
             Gmesh.adj[getindex(i+1,j,size)].push_back(getindex(i,j,size));
         }
     }
+
+    /*Randomization*/
+    for(int i=0 ; i< Gmesh.V ; i++){
+        for(int j=0; j < k ; j++){
+            Gmesh.adj[i].push_back(rand()%(Gmesh.V));
+        }
+    }
+
     return Gmesh;
+}
+
+Graph getTree(int size,int k){
+    
+    Graph Gtree = Graph(pow(2,size));
+    vector<int> list;
+    list.push_back(0);
+    int lsize;
+    for(int index =1 ; index < pow(2,size) ; index = index*2){
+        lsize = list.size();
+        for(int j =0 ; j <lsize ;j++ ){
+            Gtree.adj[list[j]].push_back(list[j]+index);
+            Gtree.adj[list[j]+index].push_back(list[j]);
+            list.push_back(list[j]+index);
+        }
+    }
+
+    /*Randomization*/
+    for(int i=0 ; i< Gtree.V ; i++){
+        for(int j=0; j < k ; j++){
+            Gtree.adj[i].push_back(rand()%(Gtree.V));
+        }
+    }
+
+    return Gtree;
 }
 
 
@@ -71,6 +108,7 @@ int main(int argc, char *argv[]) {
 
     int network = atoi(argv[1]);
     int size = atoi(argv[2]);
+    int k = atoi(argv[3]);
 
     int bisectionWidth;
     Graph graph(0);
@@ -79,13 +117,15 @@ int main(int argc, char *argv[]) {
         graph = getRing(size);
         bisectionWidth = BisectionWidth(graph);
     }else if(network ==1){
-        graph = getMesh(size);
+        graph = getMesh(size,k);
         bisectionWidth = BisectionWidth(graph);
     }else if(network ==2){
-
+        graph = getTree(size,k);
+        bisectionWidth = BisectionWidth(graph);
     }
     
-    printf("No of nodes in G %3d and it's bisection width is %d \n",graph.V,bisectionWidth);
+    // printf("No of nodes in G %4d and it's bisection width is %d \n",graph.V,bisectionWidth);
+    printf(" %4d , %d \n",graph.V,bisectionWidth);
 
     return 0;
 }
