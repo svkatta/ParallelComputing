@@ -77,6 +77,40 @@ Graph getTree(int size,int k){
     return Gtree;
 }
 
+/*-------------------------*/
+
+int DistBFS(Graph G,int node1,int node2){
+    vector<int> visited = vector<int> (G.V, 0);
+    vector<int> parent = vector<int> (G.V, -1);
+    vector<int> distance = vector<int> (G.V, -1);
+    queue <int> que;
+    int currnode;
+
+    visited[node1] = 1;
+    distance[node1] = 0;
+    que.push(node1);
+    while(!que.empty()){
+        currnode = que.front();
+        que.pop();
+        for(auto & node : G.adj[currnode]){
+            if (visited[node]==0){
+                visited[node] = 1;
+                parent[node] = currnode;
+                distance[node] = distance[parent[node]]+1;
+                que.push(node);
+            }
+        }
+    }
+    return distance[node2];
+}
+
+int getSimulatedDiameter(int noftrails, Graph graph){
+    int diameter = -1;
+    for(int i =0 ; i < noftrails ; i++){
+        diameter = max(DistBFS(graph,rand()%(graph.V),rand()%(graph.V)),diameter);
+    }
+    return diameter;
+}
 
 int GraphWidth(Graph G, vector<int> equipartionlist){
     int count =0;
@@ -103,6 +137,17 @@ int BisectionWidth(Graph G){
     }
     return bisecwidth;
 }
+
+int Dilation(Graph G1,Graph G2){
+    int dilation = 1;
+    for(int i=0 ; i < G1.V ; i++){
+        for(auto node : G1.adj[i]){
+            dilation = max(dilation,DistBFS(G2,i,node));
+        }
+    }
+    return dilation
+}
+
 
 int main(int argc, char *argv[]) {
 

@@ -30,9 +30,13 @@ int getindex(int i , int  j ,int size){
 Graph getMesh(int size,int k){
     Graph Gmesh = Graph(size*size);
     for(int i=0 ; i < size ; i++){
-        for(int j=0 ; j < size ; j++){ 
+        for(int j=0 ; j < size-1 ; j++){ 
             Gmesh.adj[getindex(i,j,size)].push_back(getindex(i,j+1,size)); // i,j -> i,j+1 
             Gmesh.adj[getindex(i,j+1,size)].push_back(getindex(i,j,size));
+        }
+    }
+    for(int i=0 ; i < size-1 ; i++){
+        for(int j=0 ; j < size ; j++){ 
             Gmesh.adj[getindex(i,j,size)].push_back(getindex(i+1,j,size)); // i,j -> i+1,j 
             Gmesh.adj[getindex(i+1,j,size)].push_back(getindex(i,j,size));
         }
@@ -47,9 +51,6 @@ Graph getMesh(int size,int k){
 
     return Gmesh;
 }
-
-
-
 
 Graph getTree(int size,int k){
     
@@ -76,6 +77,8 @@ Graph getTree(int size,int k){
     return Gtree;
 }
 
+/*-------------------------*/
+
 int DistBFS(Graph G,int node1,int node2){
     vector<int> visited = vector<int> (G.V, 0);
     vector<int> parent = vector<int> (G.V, -1);
@@ -101,8 +104,6 @@ int DistBFS(Graph G,int node1,int node2){
     return distance[node2];
 }
 
-/*-------------------------------------*/
-
 int getSimulatedDiameter(int noftrails, Graph graph){
     int diameter = -1;
     for(int i =0 ; i < noftrails ; i++){
@@ -110,6 +111,43 @@ int getSimulatedDiameter(int noftrails, Graph graph){
     }
     return diameter;
 }
+
+int GraphWidth(Graph G, vector<int> equipartionlist){
+    int count =0;
+    for(int i=0 ; i < G.V ; i++){
+        for(auto & node : G.adj[i]){
+            if(equipartionlist[i]==0 && equipartionlist[node]==1){
+                count++;
+            }
+        }
+    }
+    return count;
+}
+
+int BisectionWidth(Graph G){
+    vector<int> positions(G.V,0);
+    for (int i = 0; i < G.V/2; i++) {
+        positions[i]=1;
+    }
+
+    int bisecwidth =INT_MAX;
+    for(int i =0 ; i < 20*(G.V)*(G.V)*(G.V) ; i++){
+        random_shuffle(positions.begin(), positions.end());
+        bisecwidth = min(bisecwidth,GraphWidth(G,positions));
+    }
+    return bisecwidth;
+}
+
+int Dilation(Graph G1,Graph G2){
+    int dilation = 1;
+    for(int i=0 ; i < G1.V ; i++){
+        for(auto node : G1.adj[i]){
+            dilation = max(dilation,DistBFS(G2,i,node));
+        }
+    }
+    return dilation
+}
+
 
 
 int main(int argc, char *argv[]) {
