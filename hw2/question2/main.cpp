@@ -131,7 +131,7 @@ int BisectionWidth(Graph G){
     }
 
     int bisecwidth =INT_MAX;
-    for(int i =0 ; i < 20*(G.V)*(G.V)*(G.V) ; i++){
+    for(int i =0 ; i < 1000000 ; i++){
         random_shuffle(positions.begin(), positions.end());
         bisecwidth = min(bisecwidth,GraphWidth(G,positions));
     }
