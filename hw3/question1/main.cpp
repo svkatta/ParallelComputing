@@ -70,17 +70,11 @@ void * p_quicksort(void * ptr) {
 
     int pivot_index = partition(args->arr, args->start, args->stop);
     
-    struct arg_struct  scargs1,scargs2;
     pthread_t thread;
     int  iret;
+    struct arg_struct  scargs1 = {args->arr,args->start,pivot_index-1};
+    struct arg_struct  scargs2 = {args->arr,pivot_index+1,args->stop};
 
-    scargs1.arr = args->arr;
-    scargs1.start = args->start;
-    scargs1.stop = pivot_index-1;
-
-    scargs2.arr = args->arr;
-    scargs2.start = pivot_index+1;
-    scargs2.stop = args->stop;
 
     iret = pthread_create( &thread, NULL, p_quicksort, (void*) &scargs1);
     // printf("created thread\n");
@@ -100,18 +94,12 @@ int main(){
     }
     // print_arr(arr,size);
 
-    // int size = 10;
-    // int arr[] = {6,1,7,9,13,8,2,5,4,11};
-
     pthread_mutex_init(&mutex1, NULL);
 
+    // create thread
     pthread_t thread;
     int  iret;
-
-    struct arg_struct  args ;
-    args.arr = arr;
-    args.start=0;
-    args.stop=size-1;
+    struct arg_struct  args = {arr,0,size-1};
 
     iret = pthread_create( &thread, NULL, p_quicksort, (void*) &args);
     pthread_join( thread, NULL);
