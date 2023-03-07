@@ -99,9 +99,6 @@ void * p_partition(void * ptr){        // O(P) version
             count.second++;
         }
     }
-    // printf("threadid: %d count: %d \n",args->id,count);
-    // threads[args->id].niwrites = 1;
-    // threads[args->id].i = count;
 
 
     //  now communication between threads
@@ -121,8 +118,6 @@ void * p_partition(void * ptr){        // O(P) version
     }
     count.first = threads[args->id].csum.first  ;
     count.second = threads[args->id].csum.second  ;
-    // printf("threadid: %d count1: %d \n",args->id,count.first);
-    // printf("threadid: %d count2: %d \n",args->id,count.second);
     
     //now count has cummlative sum write to temp arr
 
@@ -166,7 +161,6 @@ struct pqs_args{
 };
 
 int getthread_divison(int start, int stop, int pivot_index,int at_low,int at_high){
-    //printf("start: %d stop: %d pivot_index: %d at_low: %d at_high: %d \n",start,stop,pivot_index,at_low,at_high);
     int ava_threads = at_high -at_low+1;
     if (ava_threads == 1){
         return at_low;
@@ -178,8 +172,6 @@ int getthread_divison(int start, int stop, int pivot_index,int at_low,int at_hig
     }else if(thread_id <= at_low){
         thread_id = at_low;
     }
-
-    // int thread_id = (at_low + at_high)/2;
 
     return thread_id;
 }
@@ -203,8 +195,6 @@ void * p_quicksort(void * ptr) {                 //[start,stop]
         return 0;
     }
 
-    // printf("pqs Tlow:%d Thigh:%d totalT:%d start:%2d stop:%2d \n", at_low,at_high,ava_threads,start,stop);
-
     // parallel parition 
     pthread_barrier_t barrier1,barrier2;;
     pthread_barrier_init(&barrier1, nullptr, ava_threads);
@@ -220,7 +210,6 @@ void * p_quicksort(void * ptr) {                 //[start,stop]
                     (i!=at_high) ? start+(i-at_low+1)*step-1 : stop,
                     piviot,start,
                     &barrier1,&barrier2,0};
-        // printf("created thread %d %d %d \n",pargs[i].low,pargs[i].high,piviot);
         pthread_create(&threads[i].thread, NULL, p_partition, (void*) &pargs[i]);
     }
     
@@ -230,7 +219,6 @@ void * p_quicksort(void * ptr) {                 //[start,stop]
     pthread_barrier_destroy(&barrier1); // destroy the barrier object
     pthread_barrier_destroy(&barrier2); // destroy the barrier object
 
-    // printf("---------finished partititon %d \n" , pargs[at_high].retval);
     swap(arr,pargs[at_high].retval,args->stop);
 
     // left and right quick sort

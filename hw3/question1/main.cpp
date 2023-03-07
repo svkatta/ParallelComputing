@@ -20,7 +20,6 @@ struct arg_struct {
 };
 
 void swap(int *arr ,int i ,  int j){
-    // printf("swapping %d %d \n",arr[i],arr[j]);
     int temp =arr[i];
     arr[i] = arr[j];
     arr[j] = temp;
@@ -64,14 +63,12 @@ void * p_quicksort(void * ptr) {
     }
 
     bool create_thread=false;
-    // if(nthreads<max_threads){
-        pthread_mutex_lock( &mutex1 );  // blocking call 
-        if(nthreads<max_threads){
-            nthreads++;
-            create_thread=true;
-        }
-        pthread_mutex_unlock( &mutex1 );
-    // }
+    pthread_mutex_lock( &mutex1 );  // blocking call 
+    if(nthreads<max_threads){
+        nthreads++;
+        create_thread=true;
+    }
+    pthread_mutex_unlock( &mutex1 );
 
     if(!create_thread){
         s_quicksort(args->arr, args->start, args->stop);
@@ -87,7 +84,6 @@ void * p_quicksort(void * ptr) {
 
 
     iret = pthread_create( &thread, NULL, p_quicksort, (void*) &scargs1);
-    // printf("created thread\n");
     p_quicksort((void*) &scargs2);
 
     pthread_join( thread, NULL);
@@ -120,10 +116,9 @@ int main(int argc, char *argv[]){
     // printf("Sorting array size:%d , Threads:%d , Time Taken:%ld \n",size,max_threads,(end.tv_sec-start.tv_sec) * 1000 + (end.tv_usec-start.tv_usec)/1000);
     printf("%ld \n",(end.tv_sec-start.tv_sec) * 1000 + (end.tv_usec-start.tv_usec)/1000);
 
-    // s_quicksort(arr,0,size-1);
+
     assert(validate_array(arr,size));
     assert(nthreads==max_threads);
-    // print_arr(arr,size);
     return 0;
 }
 
