@@ -1,12 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <sys/time.h>
+#include <assert.h>     
 
-void validate_array(int* arr , int size);
+bool validate_array(int* arr , int size);
 void print_arr(int* arr , int size);
-int nthreads =0;
 
+
+int nthreads =0;
 pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
+int max_threads = 8;
 
 
 struct arg_struct {
@@ -22,7 +26,7 @@ void swap(int *arr ,int i ,  int j){
     arr[j] = temp;
 }
 
-int partition(int *arr, int low, int high) {
+int s_partition(int *arr, int low, int high) {
     int pivot = arr[high];
     int i = low - 1;
 
@@ -38,11 +42,15 @@ int partition(int *arr, int low, int high) {
 
 void s_quicksort(int * arr, int low, int high){ // [low , high]
     if (low < high) {
-        int pivot_index = partition(arr, low, high);
+        int pivot_index = s_partition(arr, low, high);
         s_quicksort(arr, low, pivot_index - 1);
         s_quicksort(arr, pivot_index + 1, high);
     }
 }
+
+
+
+
 
 void * p_quicksort(void * ptr) {
     arg_struct * args =  (arg_struct *)(ptr);
@@ -56,19 +64,21 @@ void * p_quicksort(void * ptr) {
     }
 
     bool create_thread=false;
-    pthread_mutex_lock( &mutex1 );  // blocking call 
-    if(nthreads<32){
-        nthreads++;
-        create_thread=true;
-    }
-    pthread_mutex_unlock( &mutex1 );
+    // if(nthreads<max_threads){
+        pthread_mutex_lock( &mutex1 );  // blocking call 
+        if(nthreads<max_threads){
+            nthreads++;
+            create_thread=true;
+        }
+        pthread_mutex_unlock( &mutex1 );
+    // }
 
     if(!create_thread){
         s_quicksort(args->arr, args->start, args->stop);
         return 0;
     }
 
-    int pivot_index = partition(args->arr, args->start, args->stop);
+    int pivot_index = s_partition(args->arr, args->start, args->stop);
     
     pthread_t thread;
     int  iret;
@@ -85,14 +95,15 @@ void * p_quicksort(void * ptr) {
 }
 
 
-int main(){
-    int size = 100000;
+int main(int argc, char *argv[]){
+    max_threads = atoi(argv[1]);
+    int size = atoi(argv[2]);
     int* arr;
+    srand(10);
     arr=  (int*)malloc(size * sizeof(int));
     for( int i = 0; i < size; i += 1) {
         arr[i] = rand();
     }
-    // print_arr(arr,size);
 
     pthread_mutex_init(&mutex1, NULL);
 
@@ -101,26 +112,30 @@ int main(){
     int  iret;
     struct arg_struct  args = {arr,0,size-1};
 
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
     iret = pthread_create( &thread, NULL, p_quicksort, (void*) &args);
     pthread_join( thread, NULL);
-
+    gettimeofday(&end, NULL);
+    // printf("Sorting array size:%d , Threads:%d , Time Taken:%ld \n",size,max_threads,(end.tv_sec-start.tv_sec) * 1000 + (end.tv_usec-start.tv_usec)/1000);
+    printf("%ld \n",(end.tv_sec-start.tv_sec) * 1000 + (end.tv_usec-start.tv_usec)/1000);
 
     // s_quicksort(arr,0,size-1);
-    validate_array(arr,size);
+    assert(validate_array(arr,size));
+    assert(nthreads==max_threads);
     // print_arr(arr,size);
     return 0;
 }
 
-void validate_array(int* arr , int size){
-    printf("created threads %d\n",nthreads);
+bool validate_array(int* arr , int size){
     int current = arr[0];
-    for(int i =0 ; i <size ;i++){
+    for(int i =1 ; i <size ;i++){
         if(arr[i] < current){
-            printf("Not sorted array\n");
-            return;
+            return false;
         }
+        current = arr[i];
     }
-    printf("Sorted array\n");
+    return true;
 }
 
 void print_arr(int* arr , int size){

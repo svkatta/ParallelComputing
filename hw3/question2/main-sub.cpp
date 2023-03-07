@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <sys/time.h>
 #include <iostream>
 #include <utility>
+#include <assert.h>   
 using namespace std;
 
-void validate_array(int* arr , int size);
+bool validate_array(int* arr , int size);
 void print_arr(int* arr , int size);
 int nthreads =0;
 
@@ -19,7 +21,6 @@ struct arg_struct {
 };
 
 void swap(int *arr ,int i ,  int j){
-    // printf("swapping %d %d \n",arr[i],arr[j]);
     int temp =arr[i];
     arr[i] = arr[j];
     arr[j] = temp;
@@ -32,7 +33,7 @@ int partition(int *arr, int low, int high) {
     for (int j = low; j <= high - 1; j++) {
         if (arr[j] < pivot) {
             i++;
-            swap(arr,i,j);
+            if(i != j) swap(arr,i,j);
         }
     }
     swap(arr,i + 1,high);
@@ -51,7 +52,7 @@ void s_quicksort(int * arr, int low, int high){ // [low , high]
 //------//
 int* arr;                     // main array which contains numbers
 int* temp_arr;                // temp_arr used to exchange numbers in parition 
-#define MAX_THREADS 16
+int max_threads = 16;
 
 struct qthread
 {
@@ -64,7 +65,7 @@ struct qthread
     int niwrites;                //0
     pthread_cond_t cond; //= PTHREAD_COND_INITIALIZER;
 };
-struct qthread threads[MAX_THREADS];
+struct qthread *threads;
 
 struct par_args{                     // parition args
     int id;                          // id of thread;
@@ -79,7 +80,7 @@ struct par_args{                     // parition args
     pthread_barrier_t * barrier2;    // second barrier
     int retval;                      // used to communicate final piviot index
 };
-struct par_args pargs[MAX_THREADS];
+struct par_args *pargs;
 
 void * p_partition(void * ptr){        // O(P) version
     par_args * args =  (par_args *)(ptr);
@@ -164,6 +165,25 @@ struct pqs_args{
     int stop;
 };
 
+int getthread_divison(int start, int stop, int pivot_index,int at_low,int at_high){
+    //printf("start: %d stop: %d pivot_index: %d at_low: %d at_high: %d \n",start,stop,pivot_index,at_low,at_high);
+    int ava_threads = at_high -at_low+1;
+    if (ava_threads == 1){
+        return at_low;
+    }
+    int step = ((pivot_index-start)* ava_threads)/(stop-start+1) ;
+    int thread_id = at_low + step;
+    if(thread_id >= at_high){
+        thread_id = at_high-1;
+    }else if(thread_id <= at_low){
+        thread_id = at_low;
+    }
+
+    // int thread_id = (at_low + at_high)/2;
+
+    return thread_id;
+}
+
 void * p_quicksort(void * ptr) {                 //[start,stop]
     pqs_args * args =  (pqs_args *)(ptr);
 
@@ -178,7 +198,7 @@ void * p_quicksort(void * ptr) {                 //[start,stop]
     int stop = args->stop;
     int piviot = arr[args->stop];
 
-    if(args->stop - args->start < 3 || ava_threads ==1){
+    if(args->stop - args->start < 1000 || ava_threads ==1){
         s_quicksort(arr, args->start, args->stop);
         return 0;
     }
@@ -216,9 +236,9 @@ void * p_quicksort(void * ptr) {                 //[start,stop]
     // left and right quick sort
     pthread_t thread;
     int pivot_index = pargs[at_high].retval;
-    // int x = (at_high+ at_low )/(2);
-    struct pqs_args  pqsargs1 = {at_low ,   (at_high+ at_low )/(2)    ,start,pivot_index-1};
-    struct pqs_args  pqsargs2 = { ((at_high+ at_low )/(2))+1  ,at_high,pivot_index+1,stop};
+    int x = getthread_divison(start,stop,pivot_index,at_low,at_high);
+    struct pqs_args  pqsargs1 = {at_low ,   x   ,start,pivot_index-1};
+    struct pqs_args  pqsargs2 = { x+1  ,at_high,pivot_index+1,stop};
     int iret = pthread_create( &thread, NULL, p_quicksort, (void*) &pqsargs1);
     p_quicksort((void*) &pqsargs2);
 
@@ -227,52 +247,46 @@ void * p_quicksort(void * ptr) {                 //[start,stop]
 }
 
 
-int main(){
-    int size = 1000000;
 
+
+int main(int argc, char *argv[]){
+    max_threads = atoi(argv[1]);
+    int size = atoi(argv[2]);
+
+    threads=  (struct qthread *)malloc( max_threads * sizeof(struct qthread));
+    pargs  = (struct par_args *)malloc( max_threads * sizeof(struct par_args));
+    
     // Array Creation 
+    srand(42);
     temp_arr=  (int*)malloc(size * sizeof(int));
     arr=  (int*)malloc(size * sizeof(int));
     for( int i = 0; i < size; i += 1) {
-        arr[i] = rand()%30;
+        arr[i] = rand();
     }
-    // for(int i =0 ; i <size ;i++){
-    //     printf("%2d ", i);
-    // }
-    // printf("\n");
-    // print_arr(arr,size);
-    //--------------------
 
 
-    // 
-    struct pqs_args  args = {0,3,0,size-1};
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
+    struct pqs_args  args = {0,max_threads-1,0,size-1};
     p_quicksort((void*) &args);
+    gettimeofday(&end, NULL);
 
-    // print_arr(arr,size);
-    // print_arr(temp_arr,size);
-    // for(int i =0 ; i <MAX_THREADS ;i++){
-    //     printf("%2d ", threads[i].csum.second);
-    // }
-    // printf(" \n");
 
-    // print_arr(arr,size);
-
-    // // s_quicksort(arr,0,size-1);
-    validate_array(arr,size);
-    // // print_arr(arr,size);
+    // printf("Sorting array size:%d , Threads:%d , Time Taken:%ld \n",size,max_threads,(end.tv_sec-start.tv_sec) * 1000 + (end.tv_usec-start.tv_usec)/1000);
+    printf("%ld \n",(end.tv_sec-start.tv_sec) * 1000 + (end.tv_usec-start.tv_usec)/1000);
+    assert(validate_array(arr,size));
     return 0;
 }
 
-void validate_array(int* arr , int size){
-    // printf("created threads %d\n",nthreads);
+bool validate_array(int* arr , int size){
     int current = arr[0];
-    for(int i =0 ; i <size ;i++){
+    for(int i =1 ; i <size ;i++){
         if(arr[i] < current){
-            printf("Not sorted array\n");
-            return;
+            return false;
         }
+        current = arr[i];
     }
-    printf("Sorted array\n");
+    return true;
 }
 
 void print_arr(int* arr , int size){
