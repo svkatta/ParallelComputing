@@ -33,7 +33,8 @@ int main(int argc, char** argv){
     }
 
     if(rank ==0){
-        printf("Average time for %d trails with message size %d is %f\n",n_trails,message_size,(total_time)/(n_trails*2));
+        // printf("Average time for %d trails with message size %d is %f\n",n_trails,message_size,(total_time)/(n_trails*2));
+        printf("%f\n",(total_time)/(n_trails*2));
     }
 
     MPI_Finalize();

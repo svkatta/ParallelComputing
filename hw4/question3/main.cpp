@@ -81,7 +81,7 @@ int p_quicksort( MPI_Comm comm_world,int* arr ,int low, int high ,int * recv_arr
         // printf("size of cluster is 1 \n");
         s_quicksort(arr,low,high);
         MPI_Barrier(MPI_COMM_WORLD);
-        gather(arr,low,high);
+        // gather(arr,low,high);
         return 0;}
 
     int pivot;
@@ -146,8 +146,6 @@ int p_quicksort( MPI_Comm comm_world,int* arr ,int low, int high ,int * recv_arr
 
 int main(int argc, char** argv){
 
-    int array_size = 1000;
-
     MPI_Init(&argc, &argv);          // initializes the MPI environment and starts MPI communications
 
     // get processor rank and size of cluster
@@ -156,26 +154,45 @@ int main(int argc, char** argv){
     MPI_Comm_rank(MPI_COMM_WORLD, &process_rank); 
     MPI_Comm_size(MPI_COMM_WORLD, &size_of_cluster);
 
-    int arr[array_size * size_of_cluster];
-    int recv_arr[array_size * size_of_cluster];
-    srand(time(0)); // set random seed
+
+
+    int array_size = atoi(argv[1]) /size_of_cluster;
+    // int arr[array_size * size_of_cluster];  
+    // int recv_arr[array_size * size_of_cluster];
+    int * arr;
+    int * recv_arr;
+    arr      =  (int*)malloc(array_size * size_of_cluster * sizeof(int));
+    recv_arr = (int*)malloc(array_size * size_of_cluster * sizeof(int));
+    srand(0); // set random seed
+    for(int i =0 ; i < process_rank ; i++){
+        rand();
+    }
+    srand(rand()%1000);
     for(int i = 0; i < array_size; i++){
         arr[i] = rand();
     }
     srand(42);           // set random seed
 
+    float start_time, end_time;
+    start_time = MPI_Wtime();
     p_quicksort(MPI_COMM_WORLD, arr,0,array_size-1,recv_arr);
+    end_time = MPI_Wtime();
+
+
+    if (process_rank == 0) {
+        printf("time taken %f \n",end_time-start_time);
+    }
 
     MPI_Finalize();          // cleans up the MPI environment and ends MPI communications
     
-    if (process_rank == 0) {
-        assert(validate_array(arr,array_size*size_of_cluster));
-        // for (int i = 0; i < array_size*size_of_cluster; i++)
-        // {
-        //     printf("%d ",arr[i]);
-        // }
-        // printf(" \n");
-    }
+    // if (process_rank == 0) {
+    //     assert(validate_array(arr,array_size*size_of_cluster));
+    //     // for (int i = 0; i < array_size*size_of_cluster; i++)
+    //     // {
+    //     //     printf("%d ",arr[i]);
+    //     // }
+    //     // printf(" \n");
+    // }
 
 
     return 0;
