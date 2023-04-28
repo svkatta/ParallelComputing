@@ -124,10 +124,8 @@ int p_bucketsort( MPI_Comm comm_world,int* arr ,int low, int high ){
 
     MPI_Comm_size(comm_world, &p);
     MPI_Comm_rank(comm_world, &process_rank);
-    // printf("process rank is %d total processors %d  %d %d\n",process_rank,p,low,high);
+    
     if (p == 1) {
-        // printf("size of cluster is 1 \n");
-        // s_quicksort(arr,low,high);
         qsort(arr, high-low+1, sizeof(int), cmpfunc);
         // MPI_Barrier(MPI_COMM_WORLD);
         // gather(arr,low,high);
@@ -142,15 +140,7 @@ int p_bucketsort( MPI_Comm comm_world,int* arr ,int low, int high ){
     qsort(arr, high-low+1, sizeof(int), cmpfunc);
     pick_pivots(arr,low,high,p-1,pivots);
 
-    if(process_rank == print_rank ){
-        printf("rank %d  local picked piviots",process_rank);
-        for(int i = 0 ; i < p-1 ; i++){
-            printf("%d ",pivots[i]);
-        }
-        printf("\n---\n");
-    }
-    
-    
+
     // comunicate the pivots to all processes
     int *sendbuf = (int*) malloc(p * (p-1) * sizeof(int));
     int *recvbuf = (int*) malloc(p * (p-1) * sizeof(int));
@@ -159,49 +149,15 @@ int p_bucketsort( MPI_Comm comm_world,int* arr ,int low, int high ){
             sendbuf[j*(p-1)+i] = pivots[i];
         }
     }
-    if(process_rank == print_rank  ){
-        for (int i = 0; i < p; i++) {
-            for (int j = 0; j < (p-1); j++) {
-                printf("%d ", sendbuf[i * (p-1) + j]);
-            }
-            printf("\n");
-        }
-        printf("---\n");
-    }
-    
 
     MPI_Alltoall(sendbuf, p-1, MPI_INT, recvbuf, p-1, MPI_INT, MPI_COMM_WORLD);
 
-    if(process_rank == print_rank  ){
-        for (int i = 0; i < p; i++) {
-            for (int j = 0; j < (p-1); j++) {
-                printf("%d ", recvbuf[i * (p-1) + j]);
-            }
-            printf("\n");
-        }
-    }
-    
     
     // select the pivots
     s_quicksort(recvbuf,0,p*(p-1)-1);
     
     pick_pivots(recvbuf,0,p*(p-1)-1,p-1,pivots);
 
-    
-
-    if(process_rank == print_rank ){
-        for(int i = 0 ; i < p*(p-1) ; i++){
-            printf("%d ",recvbuf[i]);
-        }
-        printf("\n");
-        printf(" global picked piviots ");
-        for (int i = 0; i < p-1; i++) {
-            printf("%d ", pivots[i ]);
-        }
-        printf("\n");
-    }
-
-    
 
     // divide the array into buckets and communicate
 
@@ -213,26 +169,10 @@ int p_bucketsort( MPI_Comm comm_world,int* arr ,int low, int high ){
     MPI_Alltoall(send_counts, 1, MPI_INT, recv_counts,1, MPI_INT, MPI_COMM_WORLD);
     const int* receive_displs = get_displs(recv_counts,p);
 
-    if(process_rank == print_rank ){
-        for (int i = 0; i < p; i++) {
-            printf("  %d %d %d %d \n", send_counts[i],send_displs[i], recv_counts[i],receive_displs[i] );
-        }
-    }
-    
-
     int* recv_vals = (int*) malloc(cum_sum(recv_counts,p) * sizeof(int));
     MPI_Alltoallv(arr, send_counts,send_displs , MPI_INT, 
                   recv_vals, recv_counts, receive_displs, MPI_INT, MPI_COMM_WORLD);
-    if(process_rank == print_rank){
-    for(int i = low ; i <= high ; i++){
-        printf("%d ",arr[i]);
-    }
-    printf("\n");
-    for(int i = 0 ; i < cum_sum(recv_counts,p) ; i++){
-        printf("%d ",recv_vals[i]);
-    }
-    printf("\n");
-    }
+
     
     qsort(recv_vals, cum_sum(recv_counts,p), sizeof(int), cmpfunc);
     // s_quicksort(recv_vals,0,cum_sum(recv_counts,p)-1);
@@ -269,13 +209,6 @@ int main(int argc, char** argv){
     float start_time, end_time;
     start_time = MPI_Wtime();
     p_bucketsort(MPI_COMM_WORLD, arr, 0, array_size-1);
-    // s_quicksort(arr,0,array_size-1);
-    // int pivots[3] = {541336356,1073738567,1609637829};
-    // int* send_counts = get_counts(arr,0,array_size-1,pivots,4-1);
-    // for(int i = 0 ; i < 4 ; i++){
-    //     printf("%d ",send_counts[i]);
-    // }
-    // printf("\n");
     MPI_Barrier(MPI_COMM_WORLD);
     end_time = MPI_Wtime();
 
@@ -289,23 +222,3 @@ int main(int argc, char** argv){
 
 
 
-// int main(int argc, char** argv){
-//     int pivots[3] = {1,5,10};
-//     int np = 3;
-//     int arr[10] = {1,2,3,4,5,6,7,8,9,10};
-//     int* counts = get_counts(arr,0,10-1,pivots,np);
-//     for(int i = 0 ; i < np ; i++){
-//         printf("%d ",counts[i]);
-//     }
-//     printf("\n");
-//     printf("%d ",find_index(arr,0,10-1,5));
-//     printf("%d ",find_index(arr,0,10-1,1));
-//     printf("%d ",find_index(arr,0,10-1,13));
-//     printf("%d ",find_index(arr,0,10-1,-12));
-// }
-
-
-    // s_quicksort(arr,0,array_size-1);
-    // assert(validate_array(arr,array_size));
-    // MPI_Finalize();          // cleans up the MPI environment and ends MPI communications
-    // return 0;
