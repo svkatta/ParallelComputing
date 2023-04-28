@@ -23,12 +23,20 @@ int s_partition(int *arr, int low, int high) {
     return i + 1;
 }
 
-void s_quicksort(int * arr, int low, int high){ // [low , high]
-    if (low < high) {
-        int pivot_index = s_partition(arr, low, high);
-        s_quicksort(arr, low, pivot_index - 1);
-        s_quicksort(arr, pivot_index + 1, high);
-    }
+// void s_quicksort(int * arr, int low, int high){ // [low , high]
+//     if (low < high) {
+//         int pivot_index = s_partition(arr, low, high);
+//         s_quicksort(arr, low, pivot_index - 1);
+//         s_quicksort(arr, pivot_index + 1, high);
+//     }
+// }
+
+int cmpfunc (const void * a, const void * b) {
+   return ( *(int*)a - *(int*)b );
+}
+
+void s_quicksort(int * arr, int low, int high){
+    qsort(arr+low, high-low+1, sizeof(int), cmpfunc);
 }
 
 bool validate_array(int* arr , int size){
@@ -180,40 +188,10 @@ int main(int argc, char** argv){
 
 
     if (process_rank == 0) {
-        printf("time taken %f \n",end_time-start_time);
+        printf(" %f ",end_time-start_time);
     }
 
     MPI_Finalize();          // cleans up the MPI environment and ends MPI communications
-    
-    // if (process_rank == 0) {
-    //     assert(validate_array(arr,array_size*size_of_cluster));
-    //     // for (int i = 0; i < array_size*size_of_cluster; i++)
-    //     // {
-    //     //     printf("%d ",arr[i]);
-    //     // }
-    //     // printf(" \n");
-    // }
-
-
     return 0;
 }
 
-
-// printf("color %d pr %d size %d piviot %d comm_rank %d\n",color,process_rank,size_of_cluster,pivot,comm_rank);
-// printf("color %d : " ,color);
-// for(int k=low ; k <= high ; k++){
-//     printf("%d ",arr[k]);
-// }
-// printf(" and i %d\n",i);
-
-
-// printf("color %d send size %d and recv size %d \n",color,send_size,recv_size);
-// printf("color %d : ",color);
-// for(int k=low ; k <= high ; k++){
-//     printf("%d ",arr[k]);
-// }
-// printf("\n");
-
-// MPI_Barrier(MPI_COMM_WORLD); 
-
-// printf("debug %d %d %d %d %d \n",process_rank,(size_of_cluster/2) ,process_rank %(size_of_cluster/2) ,(process_rank < (size_of_cluster/2)) ?  (size_of_cluster/2) : 0,comm_rank);
